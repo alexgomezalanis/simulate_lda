@@ -4,11 +4,13 @@ Nclas=3;
 Ndim=2;
 global N;
 
+rand('seed', 100);
 % Definir clases (gaussianas)
-factor=0.1;
-mu{1}=[1,1];   Sig{1}=factor*[1 0; 0 1];
-mu{2}=[2,1.5]; Sig{2}=factor*[1 0.5; 0.5 0.75];
-mu{3}=[1.5,2]; Sig{3}=factor*[0.5 0.25;0.25 0.75];
+factor=1.0;
+for n=1:Nclas
+    mu{n} = rand(1,Ndim);
+    Sig{n} = factor*genSymCov(Ndim);
+end
 medtot=zeros(1,Ndim);
 for nclas=1:Nclas
     medtot=medtot+mu{nclas};
@@ -39,23 +41,26 @@ for center=medtot-4:0.5:medtot+4
     % Transformar features
     [y,muT]=sigm(x,mu,center);
     ER(ncount)=getER(y,muT);
-    figure(2)
-    plot(y(:,1,1),y(:,2,1),'bx')
-    axis([-0.2 1.2 -0.2 1.2])
-    hold on
-    plot(y(:,1,2),y(:,2,2),'g+')
-    plot(y(:,1,3),y(:,2,3),'ro')
-    hold off
-    pause
+    % figure(2)
+    % plot(y(:,1,1),y(:,2,1),'bx')
+    % axis([-0.2 1.2 -0.2 1.2])
+    % hold on
+    % plot(y(:,1,2),y(:,2,2),'g+')
+    % plot(y(:,1,3),y(:,2,3),'ro')
+    % hold off
+    % pause
     
     % Matrices covarianza intra- e inter-clase
     Sigw=zeros(Ndim,Ndim);
+    Sigb=zeros(Ndim,Ndim);
     for nclas=1:Nclas
         data=y(:,:,nclas);
         Sigw=Sigw+cov(data);
+        covtmp=mu{nclas}-medtot;
+        Sigb=Sigb+covtmp*covtmp';
     end
-    Sigw=Sigw/3.;
-    Sigb=cov([muT{1};muT{2};muT{3}]);
+    Sigw=Sigw/Nclas;
+    Sigb=Sigb/Nclas;
     
     % Obtener LDA=A
     Siglda=inv(Sigw)*Sigb;
@@ -64,8 +69,8 @@ for center=medtot-4:0.5:medtot+4
     [lambda,I]=sort(lambda,'descend');
     A=(V(:,I))';
     Loss(ncount)=sum(lambda);
-    Loss1(ncount)=lambda(1);
-    Loss2(ncount)=lambda(2);
+    Loss1(ncount)=sum(lambda(1:Nclas-1));
+    Loss2(ncount)=sum(lambda(Nclas:end));
     
     % Obtener ER tras LDA
     ylda=y;
@@ -79,7 +84,7 @@ for center=medtot-4:0.5:medtot+4
 
 end
 
-figure(3)
+figure(2)
 center=medtot-4:0.5:medtot+4
 subplot(1,4,1), plot(center,Loss)
 title('Loss')
@@ -89,6 +94,15 @@ subplot(1,4,3), plot(center,Loss2)
 title('Loss2')
 subplot(1,4,4), plot(center,ERlda)
 title('ER (%)')
+
+disp('Loss:')
+Loss
+disp('Loss1:')
+Loss1
+disp('Loss2:')
+Loss2
+disp('ER (%)')
+ERlda
 
 
 function [y,muT]=sigm(x,mu,center)
@@ -125,4 +139,9 @@ Ntot=Nclas*N;
 ER=100*(Ntot-sum(diag(tablaconf)))/Ntot;
 end
 
+function cov=genSymCov(Ndim)
+d = rand(Ndim,1);
+t = triu(bsxfun(@min,d,d.').*rand(Ndim),1);
+cov = diag(d)+t+t.';
+end
 
