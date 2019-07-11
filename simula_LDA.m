@@ -4,12 +4,12 @@ Nclas=3;
 Ndim=10;
 global N;
 
-rand('seed', 100);
+%rand('seed', 100);
 % Definir clases (gaussianas)
 factor=0.1;
 for n=1:Nclas
-    mu{n} = rand(1,Ndim);
-    Sig{n} = factor*genEyeCov(Ndim);
+    mu{n} = Ndim*rand(1) + rand(1,Ndim);
+    Sig{n} = factor*generateSPDmatrix(Ndim);
 end
 medtot=zeros(1,Ndim);
 for nclas=1:Nclas
@@ -139,13 +139,15 @@ Ntot=Nclas*N;
 ER=100*(Ntot-sum(diag(tablaconf)))/Ntot;
 end
 
-function cov=genSymCov(Ndim)
-d = 100*rand(Ndim,1);
-t = triu(bsxfun(@min,d,d.').*rand(Ndim),1);
-cov = diag(d)+t+t.';
-end
+function cov = generateSPDmatrix(n)
+% Generate a dense n x n symmetric, positive definite matrix
 
-function cov=genEyeCov(Ndim)
-cov = eye(Ndim);
-end
+A = rand(n,n); % generate a random n x n matrix
 
+% construct a symmetric matrix
+A = A*A';
+
+% since A(i,j) < 1 by construction and a symmetric diagonally dominant matrix
+%   is symmetric positive definite, which can be ensured by adding nI
+cov = A + n*eye(n);
+end
