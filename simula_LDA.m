@@ -1,7 +1,7 @@
 % simula_LDA.m
 clear all;
 Nclas=3;
-Ndim=10;
+Ndim=2;
 global N;
 
 %rand('seed', 100);
@@ -126,7 +126,10 @@ for ntrue=1:Nclas
     for n=1:N
         dmin=1e10;
         for ntry=1:Nclas
-            d=sum((x(n,:,ntrue)-mu{ntry}).^2);
+            % Mahalanobis distance
+            dtmp=x(n,:,ntrue)-mu{ntry};
+            d = sum(dtmp'*inv(cov(x(n,:,ntrue)))*dtmp);
+            %d=sum((x(n,:,ntrue)-mu{ntry}).^2);
             if (d<dmin)
                 dmin=d;
                 nrec=ntry;
