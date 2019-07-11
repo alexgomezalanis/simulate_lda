@@ -140,7 +140,7 @@ ER=100*(Ntot-sum(diag(tablaconf)))/Ntot;
 end
 
 function cov=genSymCov(Ndim)
-d = rand(Ndim,1);
+d = 100*rand(Ndim,1);
 t = triu(bsxfun(@min,d,d.').*rand(Ndim),1);
 cov = diag(d)+t+t.';
 end
