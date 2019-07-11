@@ -1,7 +1,7 @@
 % simula_LDA.m
 clear all;
 Nclas=3;
-Ndim=2;
+Ndim=10;
 global N;
 
 rand('seed', 100);
@@ -23,13 +23,13 @@ x=zeros(N,Ndim,Nclas);
 for nclas=1:Nclas
     x(:,:,nclas)=mvnrnd(mu{nclas},Sig{nclas},N);
 end
-figure(1)
-plot(x(:,1,1),x(:,2,1),'bx')
-axis([-0.5 3 -0.5 3])
-hold on
-plot(x(:,1,2),x(:,2,2),'g+')
-plot(x(:,1,3),x(:,2,3),'ro')
-hold off
+% figure(1)
+% plot(x(:,1,1),x(:,2,1),'bx')
+% axis([-0.5 3 -0.5 3])
+% hold on
+% plot(x(:,1,2),x(:,2,2),'g+')
+% plot(x(:,1,3),x(:,2,3),'ro')
+% hold off
 
 % Computar ER original
 disp('Error rate inicial')
@@ -84,7 +84,7 @@ for center=medtot-4:0.5:medtot+4
 
 end
 
-figure(2)
+figure
 center=medtot-4:0.5:medtot+4
 subplot(1,4,1), plot(center,Loss)
 title('Loss')
