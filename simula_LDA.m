@@ -6,10 +6,10 @@ global N;
 
 rand('seed', 100);
 % Definir clases (gaussianas)
-factor=1.0;
+factor=0.1;
 for n=1:Nclas
     mu{n} = rand(1,Ndim);
-    Sig{n} = factor*genSymCov(Ndim);
+    Sig{n} = factor*genEyeCov(Ndim);
 end
 medtot=zeros(1,Ndim);
 for nclas=1:Nclas
@@ -143,5 +143,9 @@ function cov=genSymCov(Ndim)
 d = 100*rand(Ndim,1);
 t = triu(bsxfun(@min,d,d.').*rand(Ndim),1);
 cov = diag(d)+t+t.';
+end
+
+function cov=genEyeCov(Ndim)
+cov = eye(Ndim);
 end
 
