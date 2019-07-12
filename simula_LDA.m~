@@ -1,19 +1,19 @@
 % simula_LDA.m
 clear all;
 global N;
-Ndim=20;
-Nclas=4;
+Ndim=2;
+Nclas=3;
 
 %rand('seed', 100);
 % Definir clases (gaussianas)
 factor=0.1;
-for n=1:Nclas
-    mu{n} = Ndim*rand(1) + rand(1,Ndim);
-    Sig{n} = factor*generateSPDmatrix(Ndim);
-end
-% mu{1}=[1,1];   Sig{1}=factor*[1 0; 0 1];
-% mu{2}=[2,1.5]; Sig{2}=factor*[1 0.5; 0.5 0.75];
-% mu{3}=[1.5,2]; Sig{3}=factor*[0.5 0.25;0.25 0.75];
+% for n=1:Nclas
+%     mu{n} = Ndim*rand(1) + rand(1,Ndim);
+%     Sig{n} = factor*generateSPDmatrix(Ndim);
+% end
+mu{1}=[1,1];   Sig{1}=factor*[1 0; 0 1];
+mu{2}=[2,1.5]; Sig{2}=factor*[1 0.5; 0.5 0.75];
+mu{3}=[1.5,2]; Sig{3}=factor*[0.5 0.25;0.25 0.75];
 medtot=zeros(1,Ndim);
 for nclas=1:Nclas
     medtot=medtot+mu{nclas};
@@ -39,10 +39,10 @@ end
 % ERini=getER(x,mu)
 
 ncount=0;
-for center=medtot-10:0.2:medtot+10
+for center=medtot-10:0.5:medtot+10
     ncount=ncount+1;
     % Transformar features
-    y=sigm(x,mu,center);
+    [y,muT]=sigm(x,mu,center);
     %ER(ncount)=getER(y,muT);
     % figure(2)
     % plot(y(:,1,1),y(:,2,1),'bx')
@@ -53,6 +53,7 @@ for center=medtot-10:0.2:medtot+10
     % hold off
     % pause
     
+    medtotT = 1./(1+exp(-medtot+center));
     % Matrices covarianza intra- e inter-clase
     Sigw=zeros(Ndim,Ndim);
     muT=zeros(Nclas,Ndim);
@@ -65,7 +66,7 @@ for center=medtot-10:0.2:medtot+10
     Sigb=cov(muT);
     
     % Obtener LDA=A
-    Siglda=inv(Sigw)*Sigb;
+    Siglda=pinv(Sigw)*Sigb;
     [V,D]=eig(Siglda);
     lambda=diag(D);
     [lambda,I]=sort(lambda,'descend');
@@ -89,7 +90,7 @@ for center=medtot-10:0.2:medtot+10
 end
 
 figure
-center=medtot-10:0.2:medtot+10;
+center=medtot-10:0.5:medtot+10
 subplot(1,4,1), plot(center,Loss), %ylim([0 1e5])
 title('Loss')
 subplot(1,4,2), plot(center,Loss1), %ylim([0 1e5])
@@ -109,9 +110,12 @@ disp('ER (%)')
 ERlda
 
 
-function y=sigm(x,mu,center)
+function [y,muT]=sigm(x,mu,center)
+global Ndim;
 y=x;
 [Nfil,Ncol,Nclas]=size(x);
+muT=zeros(Nclas,Ndim);
+
 for nclas=1:Nclas
     for ncol=1:Ncol
         y(:,ncol,nclas)=1./(1+exp(-x(:,ncol,nclas)+center));
@@ -129,10 +133,9 @@ for ntrue=1:Nclas
         dmin=1e10;
         for ntry=1:Nclas
             % Mahalanobis distance
-            dtmp=x(n,:,ntrue)-mu{ntry};
-            d = sum(dtmp*inv(S)*dtmp');
-            % Euclidean distance
-            %d=sum((x(n,:,ntrue)-mu{ntry}).^2);
+            %dtmp=x(n,:,ntrue)-mu{ntry};
+            %d = sum(dtmp*inv(S)*dtmp');
+            d=sum((x(n,:,ntrue)-mu{ntry}).^2);
             if (d<dmin)
                 dmin=d;
                 nrec=ntry;
